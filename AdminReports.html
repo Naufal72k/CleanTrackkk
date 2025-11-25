@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Reports Management - CleanTrack Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2A62C8",
+                        "secondary": "#50E3C2",
+                        "background-light": "#f5f5f5",
+                        "background-dark": "#1a1a1a",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#242424",
+                        "border-light": "#e0e0e0",
+                        "border-dark": "#3a3a3a",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+
+    <script src="admin-header.js"></script>
+    <script src="admin-utils.js"></script>
+
+    <style>
+        /* Custom Scrollbar untuk Tabel */
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+
+<body class="font-display bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100">
+    <div class="min-h-screen flex flex-col">
+
+        <div id="app-header"></div>
+
+        <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Manajemen Laporan</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Pantau dan tindak lanjuti laporan warga.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.location.reload();"
+                        class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm text-primary">
+                        <span class="material-symbols-outlined text-lg">sync</span> Sinkron Data
+                    </button>
+                    <button
+                        class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30">
+                        <span class="material-symbols-outlined text-lg">download</span> Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <div
+                class="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-border-light dark:border-border-dark shadow-sm mb-6">
+                <div class="flex flex-col lg:flex-row gap-4 justify-between">
+
+                    <div class="relative flex-1">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                        <input type="text" id="search-input"
+                            class="w-full pl-10 pr-4 py-2.5 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-surface-dark focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm font-medium"
+                            placeholder="Cari ID Laporan, Nama Pelapor, atau Lokasi...">
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <div class="relative min-w-[180px]">
+                            <select id="filter-status"
+                                class="w-full pl-3 pr-10 py-2.5 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-surface-dark text-sm font-bold text-gray-600 focus:ring-primary focus:border-primary cursor-pointer">
+                                <option value="All">Semua Status</option>
+                                <option value="Pending">Pending (Menunggu)</option>
+                                <option value="In Progress">In Progress (Proses)</option>
+                                <option value="Resolved">Resolved (Selesai)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden">
+                <div class="overflow-x-auto table-container">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 dark:bg-gray-800 border-b border-border-light dark:border-border-dark">
+                            <tr>
+                                <th class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider">ID & Tgl
+                                </th>
+                                <th class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Pelapor
+                                    (Warga)</th>
+                                <th class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Kategori
+                                </th>
+                                <th class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Lokasi
+                                </th>
+                                <th class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status
+                                </th>
+                                <th
+                                    class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">
+                                    Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-table-body"
+                            class="divide-y divide-border-light dark:divide-border-dark text-sm">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div
+                    class="p-4 border-t border-border-light dark:border-border-dark bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
+                    <p class="text-xs font-bold text-gray-500" id="showing-text">Menampilkan 0 data</p>
+                    <div class="flex gap-2">
+                        <button disabled
+                            class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-xs font-bold text-gray-400 cursor-not-allowed">Prev</button>
+                        <button disabled
+                            class="px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-xs font-bold text-gray-400 cursor-not-allowed">Next</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-24 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+            <span class="material-symbols-outlined text-green-400">check_circle</span>
+            <p id="toast-message" class="text-sm font-bold">Berhasil update status</p>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        let allReports = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAdminHeader('reports'); // Highlight menu 'Reports'
+
+            // 1. Inisialisasi Data
+            // Fungsi ini memastikan jika user belum login/generate data, admin tetap aman (cek console)
+            initAdminData();
+
+            // 2. Ambil Data Real dari Session Storage
+            // getReports() ada di admin-utils.js, membaca key 'shared_reports'
+            allReports = getReports();
+
+            // 3. Render Awal
+            renderTable(allReports);
+
+            // 4. Event Listeners (Filter)
+            document.getElementById('search-input').addEventListener('input', handleFilter);
+            document.getElementById('filter-status').addEventListener('change', handleFilter);
+
+            // 5. Listener Storage Event (Agar auto-update jika ada perubahan di tab lain)
+            window.addEventListener('storageUpdated', () => {
+                allReports = getReports();
+                handleFilter(); // Re-render dengan filter saat ini
+            });
+        });
+
+        // --- FILTER LOGIC ---
+        function handleFilter() {
+            const searchText = document.getElementById('search-input').value.toLowerCase();
+            const statusFilter = document.getElementById('filter-status').value;
+
+            const filteredData = allReports.filter(report => {
+                // Search Logic: ID, Nama Pelapor, Kategori, atau Lokasi
+                const matchesSearch =
+                    report.id.toLowerCase().includes(searchText) ||
+                    (report.reporterName && report.reporterName.toLowerCase().includes(searchText)) ||
+                    report.category.toLowerCase().includes(searchText) ||
+                    report.location.toLowerCase().includes(searchText);
+
+                // Filter Status
+                const matchesStatus = statusFilter === 'All' || report.status === statusFilter;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderTable(filteredData);
+        }
+
+        // --- RENDER TABLE ---
+        function renderTable(data) {
+            const tbody = document.getElementById('reports-table-body');
+            const countLabel = document.getElementById('showing-text');
+
+            tbody.innerHTML = '';
+            countLabel.textContent = `Menampilkan ${data.length} data`;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-12 text-center text-gray-400">
+                            <div class="flex flex-col items-center gap-2">
+                                <span class="material-symbols-outlined text-4xl text-gray-300">search_off</span>
+                                <p class="text-sm">Tidak ada laporan yang ditemukan.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.forEach(report => {
+                // Helper styles from admin-utils.js
+                const statusStyle = getStatusColor(report.status);
+                const priorityStyle = getPriorityColor(report.priority || 'Medium');
+
+                // Ambil inisial pelapor untuk Avatar
+                const reporterInitial = report.reporterName ? report.reporterName.charAt(0).toUpperCase() : '?';
+
+                // Tentukan Tombol Aksi (State Machine)
+                let actionButtons = '';
+
+                if (report.status === 'Pending') {
+                    // Pending -> In Progress / Delete
+                    actionButtons = `
+                        <button onclick="changeStatus('${report.id}', 'In Progress')" class="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 transition-colors" title="Terima & Proses">
+                            <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                        </button>
+                        <button onclick="deleteReport('${report.id}')" class="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 transition-colors" title="Hapus Laporan">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                    `;
+                } else if (report.status === 'In Progress') {
+                    // In Progress -> Resolved
+                    actionButtons = `
+                        <button onclick="changeStatus('${report.id}', 'Resolved')" class="p-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 border border-green-200 transition-colors" title="Selesaikan Laporan">
+                            <span class="material-symbols-outlined text-[18px]">check</span>
+                        </button>
+                    `;
+                } else {
+                    // Resolved (Read Only)
+                    actionButtons = `
+                         <span class="material-symbols-outlined text-gray-300 text-[18px]">lock</span>
+                    `;
+                }
+
+                const row = `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
+                        <td class="p-4 align-top">
+                            <div class="flex flex-col">
+                                <span class="font-mono text-xs font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded w-fit">${report.id}</span>
+                                <span class="text-[10px] text-gray-400 mt-1">${report.date}</span>
+                            </div>
+                        </td>
+
+                        <td class="p-4 align-top">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary shadow-sm">
+                                    ${reporterInitial}
+                                </div>
+                                <div>
+                                    <p class="font-bold text-sm text-gray-900 dark:text-gray-100 line-clamp-1">${report.reporterName || 'Warga Anonim'}</p>
+                                    <p class="text-[10px] text-gray-400">User ID: ${report.userId || '-'}</p>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="p-4 align-top">
+                            <p class="font-bold text-sm text-gray-800 dark:text-gray-200">${report.category}</p>
+                            <span class="inline-flex mt-1 items-center px-1.5 py-0.5 rounded text-[10px] font-bold border ${priorityStyle}">
+                                ${report.priority || 'Medium'}
+                            </span>
+                        </td>
+
+                        <td class="p-4 align-top">
+                            <div class="flex items-start gap-1 max-w-[200px]">
+                                <span class="material-symbols-outlined text-[16px] text-gray-400 mt-0.5 shrink-0">location_on</span>
+                                <span class="text-sm text-gray-600 dark:text-gray-300 line-clamp-2" title="${report.location}">${report.location}</span>
+                            </div>
+                        </td>
+
+                        <td class="p-4 align-top">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${statusStyle.badge}">
+                                <span class="w-1.5 h-1.5 rounded-full ${statusStyle.dot}"></span>
+                                ${report.status}
+                            </span>
+                        </td>
+
+                        <td class="p-4 align-middle text-right">
+                            <div class="flex items-center justify-end gap-2 opacity-100 transition-opacity">
+                                ${actionButtons}
+                                <a href="AdminReportDetail.html?id=${report.id}" class="p-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors" title="Lihat Detail">
+                                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // --- ACTION LOGIC ---
+
+        function changeStatus(id, newStatus) {
+            // 1. Cari Index Data di Array Lokal
+            const index = allReports.findIndex(r => r.id === id);
+
+            if (index !== -1) {
+                // 2. Update Status
+                allReports[index].status = newStatus;
+
+                // 3. Update Timeline (PENTING untuk Notifikasi User)
+                if (!allReports[index].timeline) allReports[index].timeline = [];
+
+                // Set 'latest' false untuk semua history lama
+                allReports[index].timeline.forEach(t => t.latest = false);
+
+                // Tambah status baru ke history
+                allReports[index].timeline.unshift({
+                    status: newStatus,
+                    date: new Date().toLocaleDateString('id-ID'), // Format Indonesia
+                    latest: true,
+                    icon: newStatus === 'Resolved' ? 'check_circle' : (newStatus === 'In Progress' ? 'sync' : 'edit')
+                });
+
+                // 4. Simpan ke Session Storage (Shared)
+                saveReports(allReports);
+
+                // 5. Refresh Tampilan & Show Feedback
+                handleFilter();
+                showToast(`Status berhasil diubah menjadi ${newStatus}`);
+            }
+        }
+
+        function deleteReport(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus laporan ini secara permanen?")) {
+                // Filter array untuk membuang ID tersebut
+                allReports = allReports.filter(r => r.id !== id);
+
+                // Simpan
+                saveReports(allReports);
+
+                // Refresh
+                handleFilter();
+                showToast("Laporan berhasil dihapus.");
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = msg;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+    </script>
+</body>
+
+</html>

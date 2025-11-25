@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>User Management - CleanTrack Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2A62C8",
+                        "secondary": "#50E3C2",
+                        "background-light": "#f5f5f5",
+                        "background-dark": "#1a1a1a",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#242424",
+                        "border-light": "#e0e0e0",
+                        "border-dark": "#3a3a3a",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+
+    <script src="admin-header.js"></script>
+    <script src="admin-utils.js"></script>
+</head>
+
+<body class="font-display bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100">
+    <div class="min-h-screen flex flex-col">
+
+        <div id="app-header"></div>
+
+        <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Manajemen Warga</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Kelola akses dan pantau aktivitas pengguna
+                        terdaftar.</p>
+                </div>
+
+                <div class="flex gap-4">
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark px-4 py-2 rounded-lg border border-border-light dark:border-border-dark shadow-sm">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total Warga</p>
+                        <p class="text-xl font-black text-primary" id="count-total">0</p>
+                    </div>
+                    <div
+                        class="bg-surface-light dark:bg-surface-dark px-4 py-2 rounded-lg border border-border-light dark:border-border-dark shadow-sm">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Diblokir</p>
+                        <p class="text-xl font-black text-red-500" id="count-blocked">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-border-light dark:border-border-dark shadow-sm mb-6">
+                <div class="relative w-full md:w-96">
+                    <span
+                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                    <input type="text" id="search-user"
+                        class="w-full pl-10 pr-4 py-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-surface-dark focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm font-medium"
+                        placeholder="Cari nama atau email...">
+                </div>
+            </div>
+
+            <div
+                class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 dark:bg-gray-800 border-b border-border-light dark:border-border-dark">
+                            <tr>
+                                <th class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Profil
+                                    User</th>
+                                <th class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Bergabung
+                                </th>
+                                <th
+                                    class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-center">
+                                    Kontribusi Laporan</th>
+                                <th class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status
+                                    Akun</th>
+                                <th
+                                    class="p-4 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">
+                                    Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"
+                            class="divide-y divide-border-light dark:divide-border-dark text-sm">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-4 border-t border-border-light dark:border-border-dark bg-gray-50 dark:bg-gray-800">
+                    <p class="text-xs text-gray-500 italic text-center">Data diambil real-time dari Database Session.
+                    </p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-24 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-gray-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+            <span class="material-symbols-outlined text-green-400" id="toast-icon">check_circle</span>
+            <p id="toast-message" class="text-sm font-bold">Aksi berhasil</p>
+        </div>
+    </div>
+
+    <script>
+        let allUsers = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAdminHeader('users'); // Set menu aktif
+            initAdminData(); // Pastikan koneksi session aman
+
+            // 1. LOAD DATA REAL
+            loadUsers();
+
+            // 2. Search Listener
+            document.getElementById('search-user').addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = allUsers.filter(u =>
+                    u.name.toLowerCase().includes(term) ||
+                    u.email.toLowerCase().includes(term)
+                );
+                renderTable(filtered);
+            });
+        });
+
+        function loadUsers() {
+            // getUsers() mengambil dari shared_users di sessionStorage (admin-utils.js)
+            const rawUsers = getUsers();
+
+            // Filter: Sembunyikan Admin agar tidak memblokir diri sendiri
+            allUsers = rawUsers.filter(u => u.role !== 'ADMIN');
+
+            renderTable(allUsers);
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('count-total').textContent = allUsers.length;
+            document.getElementById('count-blocked').textContent = allUsers.filter(u => u.status === 'Blocked').length;
+        }
+
+        function getContributionCount(userId) {
+            // Hitung jumlah laporan yang dibuat user ini
+            const reports = getReports(); // dari admin-utils.js
+            return reports.filter(r => r.userId === userId).length;
+        }
+
+        function renderTable(users) {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+
+            if (users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-500">Tidak ada user ditemukan.</td></tr>`;
+                return;
+            }
+
+            users.forEach(user => {
+                const reportCount = getContributionCount(user.id);
+                const isBlocked = user.status === 'Blocked';
+
+                // UI Status Badge
+                const statusBadge = isBlocked
+                    ? '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-600 border border-red-200"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Blocked</span>'
+                    : '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-600 border border-green-200"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active</span>';
+
+                // UI Tombol Aksi
+                const btnAction = isBlocked
+                    ? `<button onclick="toggleBlock('${user.id}')" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 border border-green-200 text-xs font-bold transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-[16px]">lock_open</span> Unblock
+                       </button>`
+                    : `<button onclick="toggleBlock('${user.id}')" class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs font-bold transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-[16px]">block</span> Block
+                       </button>`;
+
+                const row = `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
+                        <td class="p-4">
+                            <div class="flex items-center gap-3">
+                                <img src="${user.avatar}" class="w-10 h-10 rounded-full bg-gray-200 object-cover border border-gray-200" alt="${user.name}">
+                                <div>
+                                    <p class="font-bold text-sm text-gray-900 dark:text-gray-100">${user.name}</p>
+                                    <p class="text-xs text-gray-500">${user.email}</p>
+                                    <p class="text-[10px] text-gray-400 font-mono mt-0.5">${user.id}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="p-4 text-gray-500 font-medium text-xs">${user.joined || '-'}</td>
+                        <td class="p-4 text-center">
+                            <span class="inline-block px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300">
+                                ${reportCount} Laporan
+                            </span>
+                        </td>
+                        <td class="p-4">${statusBadge}</td>
+                        <td class="p-4 text-right">
+                            <div class="flex justify-end gap-2 opacity-100 transition-opacity">
+                                ${btnAction}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // --- ACTION HANDLER ---
+
+        function toggleBlock(userId) {
+            // 1. Ambil SEMUA data user dari storage (termasuk Admin untuk safety save)
+            const fullUserList = getUsers();
+            const index = fullUserList.findIndex(u => u.id === userId);
+
+            if (index !== -1) {
+                const targetUser = fullUserList[index];
+                const newStatus = targetUser.status === 'Active' ? 'Blocked' : 'Active';
+
+                // Konfirmasi
+                if (newStatus === 'Blocked') {
+                    if (!confirm(`Yakin ingin memblokir ${targetUser.name}? User ini akan dipaksa logout jika sedang aktif.`)) return;
+                }
+
+                // 2. Update Data di Database Pusat
+                fullUserList[index].status = newStatus;
+
+                // 3. Simpan (Ini akan terbaca oleh user-utils.js di sisi user)
+                saveUsers(fullUserList);
+
+                // 4. Refresh UI Lokal
+                loadUsers(); // Reload list
+
+                // Feedback
+                const msg = newStatus === 'Blocked' ? 'User berhasil diblokir.' : 'Akses user dipulihkan.';
+                showToast(msg);
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = msg;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+    </script>
+</body>
+
+</html>

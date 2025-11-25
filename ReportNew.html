@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lapor Sampah - CleanTrack</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2A62C8",
+                        "secondary": "#50E3C2",
+                        "background-light": "#f8fafc",
+                        "surface": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                    animation: {
+                        'pop-up': 'popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                    },
+                    keyframes: {
+                        popUp: {
+                            '0%': { transform: 'scale(0.5) translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'scale(1) translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="user-utils.js"></script>
+    <script src="user-header.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <style>
+        @keyframes scan-move {
+
+            0%,
+            100% {
+                top: 0%;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            50% {
+                top: 100%;
+            }
+        }
+
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, transparent, #2A62C8, transparent);
+            box-shadow: 0 0 15px #2A62C8;
+            animation: scan-move 2s linear infinite;
+            z-index: 20;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            z-index: 0;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light font-display text-slate-800 antialiased selection:bg-primary/20">
+
+    <div id="app-header"></div>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-64px)]">
+
+        <div class="max-w-6xl mx-auto">
+            <div class="mb-8">
+                <h1 class="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+                    Lapor Sampah Baru
+                    <span
+                        class="bg-primary/10 text-primary text-xs px-2 py-1 rounded-full border border-primary/20 animate-pulse">AI
+                        Powered</span>
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">Lengkapi data foto dan lokasi untuk mengirim laporan ke Admin.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">1. Foto Bukti <span
+                                class="text-red-500">*</span></label>
+                        <div id="photo-upload-area"
+                            class="relative w-full h-64 rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-primary/50 transition-all cursor-pointer group">
+                            <input type="file" id="file-input" class="hidden" accept="image/*">
+
+                            <div id="state-idle"
+                                class="absolute inset-0 flex flex-col items-center justify-center text-center p-6 transition-opacity duration-300">
+                                <div
+                                    class="bg-white p-4 rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform duration-300">
+                                    <span class="material-symbols-outlined text-4xl text-primary">add_a_photo</span>
+                                </div>
+                                <p class="text-sm font-bold text-slate-700">Ketuk untuk Ambil Foto</p>
+                                <p class="text-xs text-slate-400 mt-1">AI akan mendeteksi jenis sampah.</p>
+                            </div>
+
+                            <div id="state-scanning" class="hidden absolute inset-0 bg-black">
+                                <img id="preview-img" class="w-full h-full object-cover opacity-60" src=""
+                                    alt="Preview">
+                                <div class="scanner-line"></div>
+                                <div class="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
+                                <div class="absolute bottom-4 left-0 right-0 text-center">
+                                    <span
+                                        class="bg-black/80 text-white px-4 py-1.5 rounded-full text-xs font-mono animate-pulse shadow-lg">
+                                        Menganalisis Komposisi Sampah...
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div id="state-success" class="hidden absolute inset-0">
+                                <img id="final-img" class="w-full h-full object-cover" src="" alt="Final">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent">
+                                </div>
+                                <div class="absolute bottom-4 left-4 text-white">
+                                    <p class="flex items-center gap-2 font-bold text-green-400 text-sm">
+                                        <span class="material-symbols-outlined text-lg">check_circle</span> Analisis
+                                        Selesai
+                                    </p>
+                                    <p class="text-xs opacity-80">Ketuk untuk ganti foto</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="form-details" class="space-y-4 opacity-50 pointer-events-none transition-all duration-500">
+                        <div class="hidden items-center gap-2 bg-green-50 text-green-700 px-3 py-2 rounded-lg border border-green-100"
+                            id="ai-success-msg">
+                            <span class="material-symbols-outlined text-lg">psychology</span>
+                            <span class="text-xs font-bold">Data diisi otomatis oleh AI</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Kategori Sampah</label>
+                            <select id="input-category"
+                                class="w-full rounded-xl border-slate-200 text-sm focus:ring-primary focus:border-primary bg-slate-50">
+                                <option value="">Pilih Kategori</option>
+                                <option value="Illegal Dumping">Pembuangan Ilegal</option>
+                                <option value="Overflowing Bin">Tong Sampah Penuh</option>
+                                <option value="Litter">Sampah Berserakan</option>
+                                <option value="Graffiti">Vandalisme / Graffiti</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Deskripsi</label>
+                            <textarea id="input-desc" rows="3"
+                                class="w-full rounded-xl border-slate-200 text-sm focus:ring-primary focus:border-primary"
+                                placeholder="Deskripsi detail..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col h-full">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">2. Lokasi Kejadian <span
+                            class="text-red-500">*</span></label>
+
+                    <div
+                        class="flex-grow w-full bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 relative min-h-[400px] shadow-inner group">
+                        <div id="map"></div>
+                        <div class="absolute bottom-4 left-4 right-4 z-[400]">
+                            <button id="btn-get-location"
+                                class="w-full bg-white hover:bg-slate-50 text-slate-800 font-bold py-3 px-4 rounded-xl shadow-lg border border-slate-200 flex items-center justify-center gap-2 transition-all active:scale-95">
+                                <span class="material-symbols-outlined text-primary" id="gps-icon">my_location</span>
+                                <span id="gps-text">Gunakan Lokasi Saya (GPS)</span>
+                            </button>
+                        </div>
+
+                        <div id="map-loading"
+                            class="hidden absolute inset-0 bg-white/80 z-[500] flex items-center justify-center backdrop-blur-sm">
+                            <div class="text-center">
+                                <span class="material-symbols-outlined text-4xl text-primary animate-spin">sync</span>
+                                <p class="text-xs font-bold text-slate-500 mt-2">Mencari Koordinat...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3 transition-colors"
+                        id="address-box">
+                        <span class="material-symbols-outlined text-slate-400 mt-0.5">pin_drop</span>
+                        <div>
+                            <p class="text-xs font-bold text-slate-500 uppercase">Alamat Terdeteksi</p>
+                            <p class="text-sm font-medium text-slate-800" id="detected-address">-</p>
+                            <p class="text-xs text-slate-400 font-mono mt-1" id="detected-coords">Lat: -, Lng: -</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="mt-12 pt-6 border-t border-slate-200 sticky bottom-0 bg-background-light/95 backdrop-blur-md pb-4 lg:static lg:bg-transparent">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <p class="text-sm text-slate-500 hidden sm:block">Pelapor: <span id="reporter-badge"
+                            class="font-bold text-slate-800">...</span></p>
+
+                    <button id="btn-submit" disabled
+                        class="w-full sm:w-auto min-w-[240px] bg-slate-200 text-slate-400 cursor-not-allowed font-bold py-4 px-8 rounded-xl shadow-none transition-all flex items-center justify-center gap-2">
+                        <span>Lengkapi Data Dulu</span>
+                        <span class="material-symbols-outlined text-lg">lock</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="success-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 relative z-10 text-center transform scale-95 opacity-0 transition-all duration-300"
+            id="modal-content">
+
+            <div class="relative h-24 mb-4 flex items-center justify-center">
+                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center absolute z-0">
+                    <span class="material-symbols-outlined text-5xl text-green-600">send</span>
+                </div>
+                <div id="reward-animation" class="hidden absolute z-20 animate-pop-up -top-8">
+                    <div class="flex flex-col items-center">
+                        <span class="material-symbols-outlined text-7xl text-yellow-400 drop-shadow-xl"
+                            style="text-shadow: 0 4px 0 #d97706;">monetization_on</span>
+                        <div
+                            class="bg-yellow-500 text-white text-sm font-black px-3 py-1 rounded-full shadow-lg border-2 border-white mt-1 transform rotate-3">
+                            +10 POIN!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-2xl font-black text-slate-900 mb-2">Laporan Terkirim!</h2>
+            <p class="text-slate-500 text-sm mb-6">
+                Terima kasih telah peduli. Poin apresiasi telah ditambahkan ke saldo Anda.
+            </p>
+
+            <button onclick="window.location.href='MyWasteReports.html'"
+                class="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 active:scale-95">
+                Lihat Status & Poin
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // STATE
+        let currentUser = null;
+        let isPhotoReady = false;
+        let isLocationReady = false;
+        let isSubmitting = false;
+        let uploadedImageBase64 = null;
+        let map, marker;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Cek Login & Init
+            currentUser = requireLogin(); // Dari user-utils.js
+            renderHeader('new');
+
+            if (currentUser) {
+                document.getElementById('reporter-badge').textContent = currentUser.name;
+            }
+
+            initMap();
+            setupEventListeners();
+        });
+
+        function initMap() {
+            map = L.map('map').setView([-8.5833, 116.1167], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap', maxZoom: 19
+            }).addTo(map);
+        }
+
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('photo-upload-area');
+            const fileInput = document.getElementById('file-input');
+            uploadArea.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) processImage(e.target.files[0]);
+            });
+
+            document.getElementById('btn-get-location').addEventListener('click', getRealLocation);
+            document.getElementById('btn-submit').addEventListener('click', submitReport);
+        }
+
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                uploadedImageBase64 = e.target.result;
+                document.getElementById('state-idle').classList.add('hidden');
+                document.getElementById('state-success').classList.add('hidden');
+                document.getElementById('state-scanning').classList.remove('hidden');
+                document.getElementById('preview-img').src = uploadedImageBase64;
+                setTimeout(() => finishScanning(), 2000);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function finishScanning() {
+            document.getElementById('state-scanning').classList.add('hidden');
+            document.getElementById('state-success').classList.remove('hidden');
+            document.getElementById('final-img').src = uploadedImageBase64;
+
+            const formContainer = document.getElementById('form-details');
+            formContainer.classList.remove('opacity-50', 'pointer-events-none');
+
+            document.getElementById('input-desc').value = "Terdeteksi tumpukan sampah yang perlu dibersihkan.";
+            document.getElementById('input-category').value = "Illegal Dumping";
+
+            document.getElementById('ai-success-msg').classList.remove('hidden');
+            document.getElementById('ai-success-msg').classList.add('flex');
+
+            isPhotoReady = true;
+            checkValidation();
+        }
+
+        function getRealLocation() {
+            const btn = document.getElementById('btn-get-location');
+            const loading = document.getElementById('map-loading');
+            loading.classList.remove('hidden');
+            btn.disabled = true;
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        handleLocationSuccess(lat, lng);
+                    },
+                    (error) => {
+                        alert("Gagal mengambil lokasi.");
+                        loading.classList.add('hidden');
+                        btn.disabled = false;
+                    },
+                    { enableHighAccuracy: true }
+                );
+            }
+        }
+
+        function handleLocationSuccess(lat, lng) {
+            map.flyTo([lat, lng], 17);
+            if (marker) map.removeLayer(marker);
+            marker = L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Terkunci").openPopup();
+
+            const address = `Jl. Koordinat ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            document.getElementById('detected-address').textContent = address;
+            document.getElementById('detected-coords').textContent = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
+
+            document.getElementById('address-box').classList.replace('bg-slate-50', 'bg-green-50');
+            document.getElementById('address-box').classList.replace('border-slate-200', 'border-green-200');
+
+            const gpsIcon = document.getElementById('gps-icon');
+            gpsIcon.textContent = 'check_circle';
+            gpsIcon.classList.replace('text-primary', 'text-green-600');
+            document.getElementById('gps-text').textContent = "Lokasi Terkunci";
+
+            document.getElementById('map-loading').classList.add('hidden');
+            isLocationReady = true;
+            checkValidation();
+        }
+
+        function checkValidation() {
+            const btnSubmit = document.getElementById('btn-submit');
+            if (isPhotoReady && isLocationReady && !isSubmitting) {
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('bg-slate-200', 'text-slate-400', 'cursor-not-allowed');
+                btnSubmit.classList.add('bg-primary', 'text-white', 'hover:bg-primary/90', 'shadow-lg');
+                btnSubmit.innerHTML = `<span class="material-symbols-outlined text-xl">send</span><span>Kirim Laporan Sekarang</span>`;
+            }
+        }
+
+        function submitReport() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+
+            const btnSubmit = document.getElementById('btn-submit');
+            btnSubmit.innerHTML = `<span class="material-symbols-outlined animate-spin text-xl">sync</span><span>Mengirim...</span>`;
+            btnSubmit.disabled = true;
+
+            // 1. SIAPKAN DATA LAPORAN
+            const category = document.getElementById('input-category').value;
+            const newReport = {
+                id: 'CTR-' + Math.floor(Date.now() / 1000),
+                userId: currentUser.id,          // Link ke User (Penting!)
+                reporterName: currentUser.name,  // Link ke Admin (Penting!)
+                category: category,
+                location: document.getElementById('detected-address').textContent,
+                description: document.getElementById('input-desc').value,
+                status: 'Pending',
+                priority: 'Medium',
+                date: new Date().toLocaleDateString('id-ID'),
+                photos: [uploadedImageBase64],
+                timeline: [{ status: 'Submitted', date: new Date().toLocaleDateString('id-ID'), latest: true }]
+            };
+
+            setTimeout(() => {
+                // 2. SIMPAN KE DATABASE (Shared Reports)
+                const reports = getSharedReports();
+                reports.unshift(newReport);
+                saveSharedReports(reports);
+
+                // 3. UPDATE POIN (Shared Users)
+                // Gunakan fungsi sentral agar header & profil ikut update otomatis
+                updateUserPoints(currentUser.id, 10, `Reward Laporan: ${category}`);
+
+                // 4. TAMPILKAN SUKSES
+                const modal = document.getElementById('success-modal');
+                const content = document.getElementById('modal-content');
+                const rewardAnim = document.getElementById('reward-animation');
+
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                    setTimeout(() => rewardAnim.classList.remove('hidden'), 400);
+                }, 50);
+
+            }, 1500);
+        }
+    </script>
+</body>
+
+</html>

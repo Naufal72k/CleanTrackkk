@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Laporan Saya - CleanTrack</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2A62C8",
+                        "secondary": "#50E3C2",
+                        "background-light": "#f8fafc",
+                        "surface": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="user-utils.js"></script>
+    <script src="user-header.js"></script>
+</head>
+
+<body class="bg-background-light font-display text-slate-800 antialiased selection:bg-primary/20">
+
+    <div id="app-header"></div>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-64px)]">
+
+        <div class="flex flex-col lg:flex-row gap-8 items-start">
+
+            <aside class="w-full lg:w-80 flex-shrink-0 lg:sticky lg:top-24 space-y-6">
+
+                <div class="bg-surface p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-4 -mt-4"></div>
+                    <div class="relative z-10">
+                        <h2 class="text-lg font-bold mb-1 flex items-center gap-2">
+                            Halo, <span id="sidebar-name">User</span>! 👋
+                        </h2>
+                        <p class="text-sm text-slate-500 mb-4">Terima kasih telah peduli lingkungan.</p>
+
+                        <div class="flex justify-between text-xs font-bold mb-1">
+                            <span class="text-primary" id="level-current">Starter</span>
+                            <span class="text-slate-400" id="level-next">Next: Hero</span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 mb-2 overflow-hidden">
+                            <div id="level-bar"
+                                class="bg-gradient-to-r from-blue-400 to-primary h-full rounded-full transition-all duration-1000"
+                                style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-slate-400 font-mono">
+                            <span id="sidebar-points" class="text-slate-800 font-bold">0</span> Poin
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-surface p-6 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Statistik Laporan</h3>
+                    <div class="space-y-3">
+                        <div
+                            class="flex justify-between items-center p-3 bg-blue-50 rounded-xl text-blue-800 border border-blue-100">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-blue-600">folder_open</span>
+                                <span class="text-sm font-bold">Total</span>
+                            </div>
+                            <span class="text-xl font-black" id="stat-total">0</span>
+                        </div>
+                        <div
+                            class="flex justify-between items-center p-3 bg-green-50 rounded-xl text-green-800 border border-green-100">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-green-600">check_circle</span>
+                                <span class="text-sm font-bold">Selesai</span>
+                            </div>
+                            <span class="text-xl font-black" id="stat-resolved">0</span>
+                        </div>
+                        <div
+                            class="flex justify-between items-center p-3 bg-yellow-50 rounded-xl text-yellow-800 border border-yellow-100">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-yellow-600">hourglass_top</span>
+                                <span class="text-sm font-bold">Pending</span>
+                            </div>
+                            <span class="text-xl font-black" id="stat-pending">0</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="flex-1 w-full min-w-0">
+
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <div>
+                        <h1 class="text-2xl font-black tracking-tight text-slate-900">Laporan Saya</h1>
+                        <p class="text-sm text-slate-500">Pantau status penanganan sampah di lokasi Anda.</p>
+                    </div>
+                    <a href="ReportNew.html"
+                        class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                        <span class="material-symbols-outlined text-xl">add_a_photo</span>
+                        <span>Buat Laporan</span>
+                    </a>
+                </div>
+
+                <div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+                    <button onclick="filterReports('All')" id="btn-all" class="filter-btn active-tab">Semua</button>
+                    <button onclick="filterReports('Pending')" id="btn-pending"
+                        class="filter-btn inactive-tab">Menunggu</button>
+                    <button onclick="filterReports('In Progress')" id="btn-progress"
+                        class="filter-btn inactive-tab">Diproses</button>
+                    <button onclick="filterReports('Resolved')" id="btn-resolved"
+                        class="filter-btn inactive-tab">Selesai</button>
+                </div>
+
+                <div id="reports-list" class="space-y-4"></div>
+
+                <div id="empty-state"
+                    class="hidden flex flex-col items-center justify-center py-16 px-4 bg-white rounded-2xl border border-dashed border-slate-300 text-center">
+                    <div class="bg-slate-50 p-6 rounded-full mb-4">
+                        <span class="material-symbols-outlined text-6xl text-slate-300">post_add</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Belum ada laporan</h3>
+                    <p class="text-slate-500 max-w-sm mx-auto mb-6">Jadilah pahlawan lingkungan! Laporkan tumpukan
+                        sampah di sekitarmu sekarang.</p>
+                    <a href="ReportNew.html" class="text-primary font-bold hover:underline">Mulai Melapor &rarr;</a>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <div id="rating-modal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity opacity-0"
+            id="rating-backdrop"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 transform scale-95 opacity-0 transition-all duration-300"
+                id="rating-content">
+                <div class="text-center">
+                    <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="material-symbols-outlined text-3xl text-green-600">celebration</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-2">Laporan Selesai!</h3>
+                    <p class="text-slate-500 text-sm mb-6">Seberapa puas Anda dengan penanganan tim kebersihan kami?</p>
+
+                    <div class="flex justify-center gap-2 mb-6">
+                        <button class="star-btn text-slate-300 hover:text-yellow-400 text-4xl transition-colors"
+                            data-value="1">★</button>
+                        <button class="star-btn text-slate-300 hover:text-yellow-400 text-4xl transition-colors"
+                            data-value="2">★</button>
+                        <button class="star-btn text-slate-300 hover:text-yellow-400 text-4xl transition-colors"
+                            data-value="3">★</button>
+                        <button class="star-btn text-slate-300 hover:text-yellow-400 text-4xl transition-colors"
+                            data-value="4">★</button>
+                        <button class="star-btn text-slate-300 hover:text-yellow-400 text-4xl transition-colors"
+                            data-value="5">★</button>
+                    </div>
+
+                    <button onclick="submitRating()"
+                        class="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary/90 transition-all">Kirim
+                        Ulasan</button>
+                    <button onclick="closeRatingModal()"
+                        class="mt-3 text-slate-400 text-sm font-medium hover:text-slate-600">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .active-tab {
+            @apply px-4 py-2 rounded-full text-sm font-bold bg-slate-800 text-white shadow-md transition-all whitespace-nowrap;
+        }
+
+        .inactive-tab {
+            @apply px-4 py-2 rounded-full text-sm font-medium bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all whitespace-nowrap;
+        }
+    </style>
+
+    <script>
+        let currentUser = null;
+        let myReports = [];
+        let currentFilter = 'All';
+        let ratingTargetId = null;
+        let selectedStars = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. CEK LOGIN & INITIALIZE
+            currentUser = requireLogin();
+            renderHeader('reports');
+
+            loadData();
+
+            // 2. LISTENERS
+            window.addEventListener('storageUpdated', loadData); // Refresh jika Admin update status
+
+            // Rating Stars Logic
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    selectedStars = parseInt(e.target.dataset.value);
+                    updateStarUI(selectedStars);
+                });
+            });
+        });
+
+        function loadData() {
+            // A. Ambil Data Global Shared
+            const allReports = getSharedReports();
+
+            // B. Filter: Hanya ambil laporan milik User ini (ID Match)
+            myReports = allReports.filter(r => r.userId === currentUser.id);
+
+            // C. Update Sidebar
+            updateSidebar();
+
+            // D. Render List
+            filterReports(currentFilter);
+        }
+
+        function updateSidebar() {
+            // Nama & Poin (Ambil real-time dari session/users agar sinkron)
+            // Kita perlu ambil ulang user data dari shared_users untuk poin terbaru
+            const allUsers = getSharedUsers();
+            const freshUser = allUsers.find(u => u.id === currentUser.id) || currentUser;
+
+            document.getElementById('sidebar-name').textContent = freshUser.name.split(' ')[0];
+            document.getElementById('sidebar-points').textContent = freshUser.points || 0;
+
+            // Stats Count
+            const total = myReports.length;
+            const resolved = myReports.filter(r => r.status === 'Resolved').length;
+            const pending = myReports.filter(r => r.status === 'Pending').length;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-resolved').innerText = resolved;
+            document.getElementById('stat-pending').innerText = pending;
+
+            // Level Bar Logic
+            const points = freshUser.points || 0;
+            let progress = Math.min((points / 500) * 100, 100);
+            document.getElementById('level-bar').style.width = `${progress}%`;
+        }
+
+        function filterReports(status) {
+            currentFilter = status;
+
+            // Tab Styles
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = 'filter-btn inactive-tab';
+            });
+            const activeId = status === 'All' ? 'btn-all' :
+                status === 'Pending' ? 'btn-pending' :
+                    status === 'In Progress' ? 'btn-progress' : 'btn-resolved';
+            document.getElementById(activeId).className = 'filter-btn active-tab';
+
+            // Filter Data
+            const filtered = status === 'All' ? myReports : myReports.filter(r => r.status === status);
+            renderList(filtered);
+        }
+
+        function renderList(reports) {
+            const container = document.getElementById('reports-list');
+            const emptyState = document.getElementById('empty-state');
+            container.innerHTML = '';
+
+            if (reports.length === 0) {
+                container.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            reports.forEach(report => {
+                const style = getStatusConfig(report.status); // from user-utils.js
+
+                // Rating UI Logic
+                let actionArea = '';
+                if (report.status === 'Resolved') {
+                    if (report.rating) {
+                        const stars = '★'.repeat(report.rating) + '☆'.repeat(5 - report.rating);
+                        actionArea = `
+                            <div class="mt-4 pt-4 border-t border-slate-100 flex justify-end items-center gap-2">
+                                <span class="text-xs font-bold text-slate-400 uppercase">Rating Anda:</span>
+                                <span class="text-yellow-500 text-lg tracking-widest">${stars}</span>
+                            </div>`;
+                    } else {
+                        actionArea = `
+                            <div class="mt-4 pt-4 border-t border-slate-100 flex justify-end">
+                                <button onclick="openRatingModal('${report.id}')" class="flex items-center gap-2 text-sm font-bold text-yellow-600 bg-yellow-50 px-4 py-2 rounded-lg hover:bg-yellow-100 transition-colors">
+                                    <span class="material-symbols-outlined text-lg">star</span> Beri Penilaian
+                                </button>
+                            </div>`;
+                    }
+                }
+
+                const card = `
+                    <div class="bg-surface rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all duration-300 group">
+                        <div class="flex flex-col sm:flex-row gap-5">
+                            <div class="sm:w-32 sm:h-32 w-full h-48 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100 relative">
+                                <img src="${report.photos[0]}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Evidence">
+                                <div class="absolute top-2 left-2 bg-black/60 backdrop-blur-md text-white text-[10px] px-2 py-0.5 rounded font-mono">
+                                    ${report.id}
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-0 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${style.badge}">
+                                            <span class="material-symbols-outlined text-[14px]">${style.icon}</span>
+                                            ${report.status}
+                                        </div>
+                                        <span class="text-xs text-slate-400 font-medium">${report.date}</span>
+                                    </div>
+                                    <h3 class="text-base font-bold text-slate-900 mb-1 truncate">${report.category}</h3>
+                                    <p class="text-sm text-slate-500 line-clamp-2 mb-3">${report.description}</p>
+                                    <div class="flex items-center gap-1 text-xs text-slate-400">
+                                        <span class="material-symbols-outlined text-sm">location_on</span>
+                                        <span class="truncate max-w-[200px]">${report.location}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ${actionArea}
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', card);
+            });
+        }
+
+        // --- RATING MODAL ---
+        function openRatingModal(id) {
+            ratingTargetId = id;
+            selectedStars = 0;
+            updateStarUI(0);
+
+            const modal = document.getElementById('rating-modal');
+            const backdrop = document.getElementById('rating-backdrop');
+            const content = document.getElementById('rating-content');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                backdrop.classList.remove('opacity-0');
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 50);
+        }
+
+        function closeRatingModal() {
+            const modal = document.getElementById('rating-modal');
+            document.getElementById('rating-backdrop').classList.add('opacity-0');
+            document.getElementById('rating-content').classList.remove('scale-100', 'opacity-100');
+            document.getElementById('rating-content').classList.add('scale-95', 'opacity-0');
+
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function updateStarUI(rating) {
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                const val = parseInt(btn.dataset.value);
+                if (val <= rating) {
+                    btn.classList.remove('text-slate-300');
+                    btn.classList.add('text-yellow-400');
+                } else {
+                    btn.classList.add('text-slate-300');
+                    btn.classList.remove('text-yellow-400');
+                }
+            });
+        }
+
+        function submitRating() {
+            if (selectedStars === 0) {
+                alert("Pilih bintang dulu!");
+                return;
+            }
+
+            // Simpan Rating ke Shared Reports
+            const allReports = getSharedReports();
+            const idx = allReports.findIndex(r => r.id === ratingTargetId);
+
+            if (idx !== -1) {
+                allReports[idx].rating = selectedStars;
+                saveSharedReports(allReports); // Save back to session
+
+                closeRatingModal();
+                loadData(); // Refresh UI
+            }
+        }
+    </script>
+</body>
+
+</html>

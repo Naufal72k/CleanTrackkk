@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Masuk - CleanTrack</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2A62C8",
+                        "secondary": "#50E3C2",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="user-utils.js"></script>
+</head>
+
+<body class="bg-slate-50 font-display text-slate-800 antialiased min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden relative">
+
+        <div class="absolute top-0 left-0 w-full h-32 bg-primary/5 -skew-y-3 origin-top-left transform -translate-y-10">
+        </div>
+
+        <div class="relative p-8 pt-10">
+            <div class="text-center mb-8">
+                <div
+                    class="inline-flex items-center justify-center w-14 h-14 bg-primary/10 text-primary rounded-2xl mb-4">
+                    <span class="material-symbols-outlined text-3xl">recycling</span>
+                </div>
+                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Selamat Datang</h1>
+                <p class="text-slate-500 text-sm mt-1">Masuk untuk mulai melapor dan memantau.</p>
+            </div>
+
+            <div id="error-alert"
+                class="hidden mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm flex items-center gap-2 animate-pulse">
+                <span class="material-symbols-outlined text-lg">error</span>
+                <span id="error-msg">Login gagal.</span>
+            </div>
+
+            <form id="login-form" class="space-y-5">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Email atau
+                        Username</label>
+                    <div class="relative">
+                        <input type="text" id="input-email" required
+                            class="w-full pl-10 pr-4 py-3 rounded-xl border-slate-200 focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm font-medium placeholder:font-normal"
+                            placeholder="Contoh: admin atau naufal@student...">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">person</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2 ml-1">Password</label>
+                    <div class="relative">
+                        <input type="password" id="input-password" required
+                            class="w-full pl-10 pr-10 py-3 rounded-xl border-slate-200 focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm font-medium placeholder:font-normal"
+                            placeholder="Masukkan password">
+                        <span
+                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">lock</span>
+
+                        <button type="button" onclick="togglePass()"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                            <span class="material-symbols-outlined text-lg" id="eye-icon">visibility_off</span>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-submit"
+                    class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-blue-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <span>Masuk Sekarang</span>
+                    <span class="material-symbols-outlined text-lg">arrow_forward</span>
+                </button>
+
+            </form>
+
+            <div class="mt-8 text-center border-t border-slate-100 pt-6">
+                <p class="text-sm text-slate-500">Belum punya akun? <a href="Register.html"
+                        class="text-primary font-bold hover:underline">Daftar Warga</a></p>
+            </div>
+
+            <div class="mt-6 bg-slate-50 p-3 rounded-lg text-xs text-slate-400 text-center">
+                <p class="font-bold mb-1">💡 Info Login Demo:</p>
+                <p>Admin: <span class="font-mono text-slate-600">admin</span> / <span
+                        class="font-mono text-slate-600">admin123</span></p>
+                <p>User: <span class="font-mono text-slate-600">naufal...</span> / <span
+                        class="font-mono text-slate-600">123</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Toggle Password
+        function togglePass() {
+            const input = document.getElementById('input-password');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        }
+
+        // 2. Handle Login
+        document.getElementById('login-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('input-email').value.trim();
+            const password = document.getElementById('input-password').value.trim();
+            const btn = document.getElementById('btn-submit');
+            const errorAlert = document.getElementById('error-alert');
+            const errorMsg = document.getElementById('error-msg');
+
+            // Reset UI
+            errorAlert.classList.add('hidden');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> Memproses...`;
+
+            // Simulasi Network Delay (500ms) agar terasa nyata
+            setTimeout(() => {
+
+                // A. LOGIK ADMIN (HARDCODED)
+                if (email === 'admin' && password === 'admin123') {
+                    // Set Sesi Admin Manual (karena admin tidak ada di array users user-utils)
+                    const adminSession = {
+                        name: 'Super Admin',
+                        role: 'ADMIN',
+                        avatar: 'https://ui-avatars.com/api/?name=Admin+System&background=000&color=fff'
+                    };
+                    sessionStorage.setItem('active_session', JSON.stringify(adminSession));
+
+                    // Redirect
+                    window.location.href = 'AdministratorDashboard.html';
+                    return;
+                }
+
+                // B. LOGIK USER (Via user-utils.js)
+                // Fungsi loginUser() sudah kita buat di user-utils.js
+                const result = loginUser(email, password);
+
+                if (result.success) {
+                    // Sukses -> Redirect ke Dashboard User
+                    window.location.href = 'MyWasteReports.html'; // atau UserProfile.html
+                } else {
+                    // Gagal -> Tampilkan Error
+                    errorMsg.textContent = result.message; // Pesan dari utils (Salah pass / Diblokir)
+                    errorAlert.classList.remove('hidden');
+
+                    // Reset Button
+                    btn.disabled = false;
+                    btn.innerHTML = `<span>Masuk Sekarang</span><span class="material-symbols-outlined text-lg">arrow_forward</span>`;
+                }
+
+            }, 800);
+        });
+    </script>
+</body>
+
+</html>

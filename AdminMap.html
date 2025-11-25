@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Ops Map (War Room) - CleanTrack Admin</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2A62C8",
+                        "secondary": "#50E3C2",
+                        "background-light": "#f5f5f5",
+                        "background-dark": "#1a1a1a",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#242424",
+                        "border-light": "#e0e0e0",
+                        "border-dark": "#3a3a3a",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"]
+                    },
+                },
+            },
+        }
+    </script>
+
+    <script src="admin-header.js"></script>
+    <script src="admin-utils.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <style>
+        /* Map Container fills the screen minus header */
+        #map-container {
+            height: calc(100vh - 64px);
+            width: 100%;
+            position: relative;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            z-index: 1;
+        }
+
+        /* --- CUSTOM MARKER STYLES --- */
+
+        /* Pulse Animation for Pending Issues */
+        @keyframes pulse-red {
+            0% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            70% {
+                transform: scale(1);
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                transform: scale(0.95);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .marker-pin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            background: #fff;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -15px 0 0 -15px;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Icon inside the pin (rotated back) */
+        .marker-pin::after {
+            content: '';
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: currentColor;
+            /* Takes color from parent */
+            transform: rotate(45deg);
+        }
+
+        /* Status Colors */
+        .pin-pending {
+            background: #EF4444;
+        }
+
+        /* Red */
+        .pin-pending::after {
+            background: white;
+        }
+
+        .pin-progress {
+            background: #3B82F6;
+        }
+
+        /* Blue */
+        .pin-progress::after {
+            background: white;
+        }
+
+        .pin-resolved {
+            background: #10B981;
+        }
+
+        /* Green */
+        .pin-resolved::after {
+            background: white;
+        }
+
+        /* Animation Wrapper */
+        .pulse-ring {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            height: 30px;
+            width: 30px;
+            animation: pulse-red 2s infinite;
+            z-index: -1;
+        }
+
+        /* Popup Styling */
+        .leaflet-popup-content-wrapper {
+            border-radius: 0.75rem;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+            width: 280px !important;
+        }
+    </style>
+</head>
+
+<body class="font-display bg-background-light dark:bg-background-dark text-gray-800 dark:text-gray-100 overflow-hidden">
+
+    <div id="app-header"></div>
+
+    <div id="map-container" class="flex">
+
+        <div class="absolute top-4 left-4 bottom-4 w-80 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-sm shadow-2xl rounded-xl z-[1000] flex flex-col border border-border-light dark:border-border-dark transition-transform duration-300"
+            id="map-sidebar">
+
+            <div class="p-4 border-b border-border-light dark:border-border-dark flex justify-between items-center">
+                <div>
+                    <h2 class="font-black text-lg">War Room</h2>
+                    <p class="text-xs text-gray-500">Live Operations Map</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-3 w-3">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                    </span>
+                    <span class="text-xs font-bold text-red-500">LIVE</span>
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50 dark:bg-gray-800/50 space-y-3">
+                <p class="text-xs font-bold uppercase text-gray-400 tracking-wider">Map Filters</p>
+                <div class="flex flex-wrap gap-2">
+                    <label class="cursor-pointer select-none">
+                        <input type="checkbox" checked class="peer sr-only" id="filter-pending"
+                            onchange="refreshMapMarkers()">
+                        <div
+                            class="px-3 py-1.5 rounded-lg border border-red-200 bg-white text-red-600 text-xs font-bold peer-checked:bg-red-500 peer-checked:text-white transition-all shadow-sm">
+                            Pending
+                        </div>
+                    </label>
+                    <label class="cursor-pointer select-none">
+                        <input type="checkbox" checked class="peer sr-only" id="filter-progress"
+                            onchange="refreshMapMarkers()">
+                        <div
+                            class="px-3 py-1.5 rounded-lg border border-blue-200 bg-white text-blue-600 text-xs font-bold peer-checked:bg-blue-500 peer-checked:text-white transition-all shadow-sm">
+                            In Progress
+                        </div>
+                    </label>
+                    <label class="cursor-pointer select-none">
+                        <input type="checkbox" class="peer sr-only" id="filter-resolved" onchange="refreshMapMarkers()">
+                        <div
+                            class="px-3 py-1.5 rounded-lg border border-green-200 bg-white text-green-600 text-xs font-bold peer-checked:bg-green-500 peer-checked:text-white transition-all shadow-sm">
+                            Resolved
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-2" id="sidebar-list">
+            </div>
+
+            <div class="p-3 border-t border-border-light dark:border-border-dark text-[10px] text-gray-500 text-center">
+                Click a pin to view details or dispatch team.
+            </div>
+        </div>
+
+        <div id="map" class="flex-1"></div>
+
+        <div id="toast"
+            class="fixed bottom-8 left-1/2 -translate-x-1/2 transform translate-y-20 opacity-0 transition-all duration-300 z-[2000] bg-gray-900 text-white px-4 py-3 rounded-full shadow-2xl flex items-center gap-3">
+            <span class="material-symbols-outlined text-green-400 text-lg">check_circle</span>
+            <span class="text-sm font-bold" id="toast-msg">Action Completed</span>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        let map;
+        let markersLayer = L.layerGroup(); // Group to manage markers
+        // Mataram Center Coordinates
+        const DEFAULT_CENTER = [-8.5833, 116.1167];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAdminHeader('map');
+            initAdminData();
+            initMap();
+        });
+
+        function initMap() {
+            // 1. Create Map Instance
+            map = L.map('map', {
+                zoomControl: false // We will move zoom control
+            }).setView(DEFAULT_CENTER, 13);
+
+            // 2. Add Tiles (Dark mode aware logic could go here, but standard OSM for now)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Move Zoom Control to Top Right
+            L.control.zoom({ position: 'topright' }).addTo(map);
+
+            // 3. Add Layer Group
+            markersLayer.addTo(map);
+
+            // 4. Initial Render
+            refreshMapMarkers();
+        }
+
+        function refreshMapMarkers() {
+            markersLayer.clearLayers(); // Clear old markers
+            const sidebarList = document.getElementById('sidebar-list');
+            sidebarList.innerHTML = ''; // Clear sidebar
+
+            const reports = getReports();
+
+            // Get Filters
+            const showPending = document.getElementById('filter-pending').checked;
+            const showProgress = document.getElementById('filter-progress').checked;
+            const showResolved = document.getElementById('filter-resolved').checked;
+
+            let visibleCount = 0;
+
+            reports.forEach(report => {
+                // Filter Logic
+                if (report.status === 'Pending' && !showPending) return;
+                if (report.status === 'In Progress' && !showProgress) return;
+                if (report.status === 'Resolved' && !showResolved) return;
+
+                visibleCount++;
+
+                // Generate Coords (Simulated Hash)
+                const coords = generateCoordinates(report.location);
+
+                // Determine Icon Style
+                let pinClass = 'pin-resolved'; // Default Green
+                let animationHtml = '';
+
+                if (report.status === 'Pending') {
+                    pinClass = 'pin-pending'; // Red
+                    animationHtml = '<div class="pulse-ring"></div>';
+                } else if (report.status === 'In Progress') {
+                    pinClass = 'pin-progress'; // Blue
+                }
+
+                const customIcon = L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="marker-pin ${pinClass}">
+                            <span class="material-symbols-outlined text-[18px] text-white" style="transform: rotate(45deg)">
+                                ${getIconForCategory(report.category)}
+                            </span>
+                           </div>${animationHtml}`,
+                    iconSize: [30, 42],
+                    iconAnchor: [15, 42],
+                    popupAnchor: [0, -35]
+                });
+
+                // Create Marker
+                const marker = L.marker(coords, { icon: customIcon });
+
+                // Popup Content
+                const popupContent = `
+                    <div class="font-display bg-white dark:bg-surface-dark">
+                        <div class="h-2 w-full ${getBgColorForStatus(report.status)}"></div>
+                        <div class="p-4">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[10px] font-mono text-gray-400">${report.id}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${getTextColorForStatus(report.status)} bg-gray-100 dark:bg-gray-800 border">
+                                    ${report.status}
+                                </span>
+                            </div>
+                            <h3 class="font-bold text-gray-800 dark:text-gray-100 text-sm mb-1">${report.category}</h3>
+                            <p class="text-xs text-gray-500 mb-3 line-clamp-2">${report.description}</p>
+                            <div class="flex items-center gap-1 text-xs text-gray-400 mb-4">
+                                <span class="material-symbols-outlined text-[14px]">location_on</span>
+                                <span class="truncate max-w-[180px]">${report.location}</span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="window.location.href='AdminReportDetail.html?id=${report.id}'" 
+                                    class="py-1.5 rounded-md border border-gray-300 text-gray-600 hover:bg-gray-50 text-xs font-bold transition-colors">
+                                    View Details
+                                </button>
+                                ${getActionButtons(report)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                markersLayer.addLayer(marker);
+
+                // Add to Sidebar
+                addToSidebar(report, sidebarList, coords);
+            });
+
+            if (visibleCount === 0) {
+                sidebarList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-40 text-gray-400">
+                        <span class="material-symbols-outlined text-3xl mb-2">map_search</span>
+                        <p class="text-xs">No reports visible.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // --- HELPER FUNCTIONS ---
+
+        function generateCoordinates(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = ((hash << 5) - hash) + str.charCodeAt(i);
+                hash |= 0;
+            }
+            // Spread randomly around center (approx 5km radius)
+            // Use ID or string to make it deterministic (same location = same pin spot)
+            const offsetLat = (hash % 1000) / 20000;
+            const offsetLng = ((hash * 2) % 1000) / 20000;
+
+            return [DEFAULT_CENTER[0] + offsetLat, DEFAULT_CENTER[1] + offsetLng];
+        }
+
+        function getIconForCategory(cat) {
+            if (cat === 'Illegal Dumping') return 'delete_forever';
+            if (cat === 'Overflowing Bin') return 'delete';
+            if (cat === 'Graffiti') return 'brush';
+            return 'recycling';
+        }
+
+        function getBgColorForStatus(status) {
+            if (status === 'Pending') return 'bg-red-500';
+            if (status === 'In Progress') return 'bg-blue-500';
+            return 'bg-green-500';
+        }
+        function getTextColorForStatus(status) {
+            if (status === 'Pending') return 'text-red-600';
+            if (status === 'In Progress') return 'text-blue-600';
+            return 'text-green-600';
+        }
+
+        function getActionButtons(report) {
+            if (report.status === 'Pending') {
+                return `<button onclick="quickUpdate('${report.id}', 'In Progress')" class="py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold transition-colors shadow-md shadow-blue-200">
+                            Dispatch Team
+                        </button>`;
+            } else if (report.status === 'In Progress') {
+                return `<button onclick="quickUpdate('${report.id}', 'Resolved')" class="py-1.5 rounded-md bg-green-600 text-white hover:bg-green-700 text-xs font-bold transition-colors shadow-md shadow-green-200">
+                            Resolve
+                        </button>`;
+            } else {
+                return `<button disabled class="py-1.5 rounded-md bg-gray-100 text-gray-400 cursor-not-allowed text-xs font-bold">
+                            Completed
+                        </button>`;
+            }
+        }
+
+        function addToSidebar(report, container, coords) {
+            const isPending = report.status === 'Pending';
+            const borderClass = isPending ? 'border-l-4 border-l-red-500' : 'border-l-4 border-transparent';
+
+            const html = `
+                <div class="bg-white dark:bg-surface-dark p-3 rounded-lg border border-gray-200 dark:border-border-dark shadow-sm hover:shadow-md transition-all cursor-pointer mb-2 ${borderClass}" onclick="flyToPin(${coords[0]}, ${coords[1]})">
+                    <div class="flex justify-between items-start">
+                        <p class="font-bold text-sm text-gray-800 dark:text-gray-200 truncate pr-2">${report.category}</p>
+                        ${isPending ? '<span class="material-symbols-outlined text-red-500 text-[16px] animate-pulse">warning</span>' : ''}
+                    </div>
+                    <p class="text-xs text-gray-500 truncate mb-1">${report.location}</p>
+                    <div class="flex items-center gap-1">
+                        <span class="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded font-medium ${getTextColorForStatus(report.status)}">${report.status}</span>
+                        <span class="text-[10px] text-gray-400">• ${report.priority || 'Medium'}</span>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        // --- INTERACTION ---
+
+        function flyToPin(lat, lng) {
+            map.flyTo([lat, lng], 16, { duration: 1.5 });
+        }
+
+        // Exposed Global function for Popup buttons
+        window.quickUpdate = function (id, newStatus) {
+            const reports = getReports();
+            const index = reports.findIndex(r => r.id === id);
+
+            if (index !== -1) {
+                reports[index].status = newStatus;
+
+                // Add timeline logic (simplified from Utils)
+                if (!reports[index].timeline) reports[index].timeline = [];
+                reports[index].timeline.forEach(t => t.latest = false);
+                reports[index].timeline.unshift({
+                    status: newStatus,
+                    date: new Date().toLocaleDateString(),
+                    latest: true
+                });
+
+                saveReports(reports);
+
+                // Show Feedback
+                const toast = document.getElementById('toast');
+                document.getElementById('toast-msg').textContent = `Report marked as ${newStatus}`;
+                toast.classList.remove('translate-y-20', 'opacity-0');
+
+                setTimeout(() => {
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                    refreshMapMarkers(); // Re-render to update icon color
+                }, 1500);
+            }
+        };
+
+    </script>
+</body>
+
+</html>

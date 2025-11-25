@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profil Saya - CleanTrack</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { "primary": "#2A62C8", "secondary": "#50E3C2", "background-light": "#f8fafc", "surface": "#ffffff" },
+                    fontFamily: { "display": ["Public Sans", "sans-serif"], "mono": ["Space Mono", "monospace"] },
+                    animation: { 'bounce-slow': 'bounce 3s infinite', }
+                }
+            }
+        }
+    </script>
+
+    <script src="user-utils.js"></script>
+    <script src="user-header.js"></script>
+</head>
+
+<body class="bg-slate-50 font-display text-slate-800 antialiased selection:bg-primary/20">
+
+    <div id="app-header"></div>
+
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-64px)]">
+        <div class="max-w-4xl mx-auto space-y-8">
+
+            <div
+                class="bg-white rounded-3xl shadow-xl shadow-slate-200 overflow-hidden relative border border-slate-100 group">
+                <div class="absolute top-0 w-full h-40 bg-gradient-to-r from-blue-800 via-primary to-blue-500"></div>
+                <div
+                    class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none">
+                </div>
+
+                <div class="relative px-8 pt-20 pb-8">
+                    <div class="flex flex-col sm:flex-row items-end gap-6">
+
+                        <div class="relative group/avatar cursor-pointer" onclick="openEditModal()">
+                            <div class="w-32 h-32 rounded-full border-4 border-white shadow-2xl bg-white p-1">
+                                <img id="profile-avatar" src=""
+                                    class="w-full h-full rounded-full object-cover transition-transform duration-500 group-hover/avatar:scale-110">
+                            </div>
+                            <div
+                                class="absolute bottom-2 right-2 bg-slate-900 text-white rounded-full p-2 shadow-lg border-2 border-white hover:bg-primary transition-colors">
+                                <span class="material-symbols-outlined text-lg block">edit</span>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 w-full mb-2">
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                                <div>
+                                    <h1 class="text-3xl font-black text-slate-900 tracking-tight" id="profile-name">...
+                                    </h1>
+                                    <div class="flex flex-col gap-1 mt-2">
+                                        <p class="text-slate-500 text-sm flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-lg text-slate-400">mail</span>
+                                            <span id="profile-email">...</span>
+                                        </p>
+                                        <p class="text-slate-500 text-sm flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-lg text-slate-400">call</span>
+                                            <span id="profile-phone">...</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <button onclick="openEditModal()"
+                                    class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-lg">settings_account_box</span>
+                                    Edit Profil
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-10 bg-slate-900 rounded-2xl p-8 text-white relative overflow-hidden shadow-lg">
+                        <div class="absolute top-0 right-0 p-8 opacity-10">
+                            <span class="material-symbols-outlined text-9xl">savings</span>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-6 relative z-10">
+                            <div class="text-center sm:text-left">
+                                <p class="text-blue-200 text-xs font-bold uppercase tracking-[0.2em] mb-2">Saldo Poin
+                                    Anda</p>
+                                <div class="flex items-center gap-3 justify-center sm:justify-start">
+                                    <span
+                                        class="material-symbols-outlined text-4xl text-yellow-400 animate-bounce-slow">monetization_on</span>
+                                    <h2 class="text-5xl font-black tracking-tight" id="wallet-balance">0</h2>
+                                    <span class="text-xl font-medium text-slate-400 self-end mb-2">Pts</span>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3 w-full sm:w-auto">
+                                <button onclick="scrollToRedeem()"
+                                    class="flex-1 sm:flex-none bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg shadow-primary/30 transition-all transform hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined">redeem</span>
+                                    Tukar Hadiah
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 min-h-[600px]" id="redeem-section">
+                <div class="flex border-b border-slate-100 sticky top-0 bg-white z-10 rounded-t-3xl">
+                    <button onclick="switchTab('store')" id="tab-btn-store"
+                        class="flex-1 py-5 text-sm font-bold text-primary border-b-2 border-primary bg-blue-50/30 transition-all flex justify-center items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">storefront</span> Katalog Hadiah
+                    </button>
+                    <button onclick="switchTab('history')" id="tab-btn-history"
+                        class="flex-1 py-5 text-sm font-medium text-slate-500 hover:text-slate-800 transition-all flex justify-center items-center gap-2">
+                        <span class="material-symbols-outlined text-lg">receipt_long</span> Riwayat Transaksi
+                    </button>
+                </div>
+
+                <div id="tab-content-store" class="p-6 sm:p-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                        <div
+                            class="group border border-slate-200 rounded-2xl p-5 hover:border-primary/30 hover:shadow-xl transition-all bg-white flex flex-col h-full">
+                            <div
+                                class="h-32 bg-yellow-50 rounded-xl mb-5 flex items-center justify-center text-yellow-600 group-hover:scale-105 transition-transform duration-300">
+                                <span class="material-symbols-outlined text-6xl">bolt</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold text-slate-900 text-lg">Token PLN 20k</h3>
+                                    <span class="bg-slate-900 text-white text-xs font-bold px-2.5 py-1 rounded-lg">100
+                                        Pts</span>
+                                </div>
+                                <p class="text-sm text-slate-500 mb-4">Voucher listrik prabayar nominal 20.000.</p>
+                            </div>
+                            <button onclick="initiateRedeem(100, 'Token PLN 20k', 'PLN')"
+                                class="w-full py-3 rounded-xl bg-white border-2 border-slate-900 text-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-all">
+                                Tukar Sekarang
+                            </button>
+                        </div>
+
+                        <div
+                            class="group border border-slate-200 rounded-2xl p-5 hover:border-primary/30 hover:shadow-xl transition-all bg-white flex flex-col h-full">
+                            <div
+                                class="h-32 bg-red-50 rounded-xl mb-5 flex items-center justify-center text-red-600 group-hover:scale-105 transition-transform duration-300">
+                                <span class="material-symbols-outlined text-6xl">phonelink_ring</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold text-slate-900 text-lg">Pulsa 10k</h3>
+                                    <span class="bg-slate-900 text-white text-xs font-bold px-2.5 py-1 rounded-lg">50
+                                        Pts</span>
+                                </div>
+                                <p class="text-sm text-slate-500 mb-4">Pulsa reguler All Operator masa aktif 30 hari.
+                                </p>
+                            </div>
+                            <button onclick="initiateRedeem(50, 'Pulsa Reguler 10k', 'HP')"
+                                class="w-full py-3 rounded-xl bg-white border-2 border-slate-900 text-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-all">
+                                Tukar Sekarang
+                            </button>
+                        </div>
+
+                        <div
+                            class="group border border-slate-200 rounded-2xl p-5 hover:border-primary/30 hover:shadow-xl transition-all bg-white flex flex-col h-full">
+                            <div
+                                class="h-32 bg-green-50 rounded-xl mb-5 flex items-center justify-center text-green-600 group-hover:scale-105 transition-transform duration-300">
+                                <span class="material-symbols-outlined text-6xl">account_balance_wallet</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold text-slate-900 text-lg">Saldo GoPay 50k</h3>
+                                    <span class="bg-slate-900 text-white text-xs font-bold px-2.5 py-1 rounded-lg">500
+                                        Pts</span>
+                                </div>
+                                <p class="text-sm text-slate-500 mb-4">Top up saldo e-wallet instan tanpa biaya admin.
+                                </p>
+                            </div>
+                            <button onclick="initiateRedeem(500, 'Saldo GoPay 50k', 'HP')"
+                                class="w-full py-3 rounded-xl bg-white border-2 border-slate-900 text-slate-900 font-bold hover:bg-slate-900 hover:text-white transition-all">
+                                Tukar Sekarang
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div id="tab-content-history" class="hidden p-0">
+                    <div id="empty-history" class="hidden py-20 text-center">
+                        <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="material-symbols-outlined text-4xl text-slate-300">receipt_long</span>
+                        </div>
+                        <p class="text-slate-800 font-bold text-lg">Belum ada transaksi</p>
+                        <p class="text-slate-500 text-sm">Riwayat poin masuk dan keluar akan tampil di sini.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead
+                                class="bg-slate-50 text-xs font-bold text-slate-500 uppercase border-b border-slate-100">
+                                <tr>
+                                    <th class="px-8 py-5">Tanggal & Waktu</th>
+                                    <th class="px-8 py-5">Keterangan Transaksi</th>
+                                    <th class="px-8 py-5 text-right">Mutasi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-list" class="divide-y divide-slate-100">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="edit-modal"
+        class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md transition-all duration-300">
+        <div class="bg-white rounded-3xl w-full max-w-md p-8 relative transform scale-95 opacity-0 transition-all duration-300"
+            id="edit-content">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Edit Profil</h3>
+                <button onclick="closeEditModal()"
+                    class="w-10 h-10 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <form class="space-y-5" onsubmit="return false;">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-3 tracking-wider">Pilih
+                        Avatar</label>
+                    <div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide" id="avatar-selector">
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Nama Lengkap</label>
+                        <input type="text" id="edit-name"
+                            class="w-full rounded-xl border-slate-200 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary transition-all font-bold text-slate-800">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Nomor WhatsApp</label>
+                        <input type="tel" id="edit-phone"
+                            class="w-full rounded-xl border-slate-200 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Alamat Email</label>
+                        <input type="email" id="edit-email"
+                            class="w-full rounded-xl border-slate-200 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+                    </div>
+                </div>
+
+                <div class="pt-6 mt-2 border-t border-slate-100">
+                    <button type="button" onclick="saveProfileData()"
+                        class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-primary transition-all shadow-lg shadow-slate-900/20 active:scale-95 flex items-center justify-center gap-2">
+                        <span>Simpan Perubahan</span>
+                        <span class="material-symbols-outlined text-lg">check</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="profile-success-modal"
+        class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-8 text-center relative transform scale-95 opacity-0 transition-all duration-300"
+            id="profile-success-content">
+            <div
+                class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                <span class="material-symbols-outlined text-4xl text-green-600">verified_user</span>
+            </div>
+            <h3 class="text-2xl font-black text-slate-900 mb-2">Profil Diperbarui!</h3>
+            <p class="text-slate-500 mb-8 leading-relaxed">Data profil Anda telah berhasil disimpan ke dalam sistem
+                kami.</p>
+            <button onclick="closeProfileSuccessModal()"
+                class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all">
+                Kembali ke Profil
+            </button>
+        </div>
+    </div>
+
+    <div id="confirm-modal"
+        class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 relative transform scale-95 opacity-0 transition-all duration-300"
+            id="confirm-content">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black text-slate-900">Konfirmasi</h3>
+                <button onclick="closeConfirmModal()" class="text-slate-400 hover:text-slate-600"><span
+                        class="material-symbols-outlined">close</span></button>
+            </div>
+
+            <div class="bg-blue-50 p-5 rounded-2xl border border-blue-100 mb-6 flex items-center gap-4">
+                <div class="bg-white p-3 rounded-xl text-blue-600 shadow-sm"><span
+                        class="material-symbols-outlined text-2xl" id="confirm-icon">redeem</span></div>
+                <div>
+                    <p class="text-xs text-blue-600 font-bold uppercase tracking-wide">Item Dipilih</p>
+                    <p class="text-base font-bold text-slate-900" id="confirm-item-name">...</p>
+                    <p class="text-xs text-slate-500 font-mono mt-0.5"><span id="confirm-cost">0</span> Poin</p>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-2" id="input-label">Nomor
+                    Tujuan</label>
+                <input type="text" id="redeem-input"
+                    class="w-full rounded-xl border-slate-300 text-lg font-mono px-4 py-3 focus:ring-2 focus:ring-primary"
+                    placeholder="Contoh: 0812...">
+            </div>
+
+            <button onclick="processRedeem()" id="btn-process"
+                class="w-full py-4 rounded-xl bg-slate-900 text-white font-bold hover:bg-primary transition-all shadow-lg flex justify-center items-center gap-2">
+                <span>Proses Transaksi</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
+        </div>
+    </div>
+
+    <div id="success-modal"
+        class="fixed inset-0 z-[120] hidden flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+        <div class="bg-white rounded-none sm:rounded-3xl w-full max-w-sm relative transform scale-95 opacity-0 transition-all duration-300 overflow-hidden shadow-2xl"
+            id="success-content">
+            <div class="bg-green-500 p-8 text-center text-white relative">
+                <div
+                    class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
+                    <span class="material-symbols-outlined text-3xl">check</span>
+                </div>
+                <h3 class="text-xl font-black uppercase tracking-widest">Transaksi Berhasil</h3>
+                <p class="text-sm text-green-100 mt-1 opacity-90" id="receipt-date">...</p>
+                <div class="absolute bottom-[-12px] left-0 right-0 h-6 bg-transparent"
+                    style="background: radial-gradient(circle, transparent 50%, white 50%) 0 -12px / 24px 24px repeat-x;">
+                </div>
+            </div>
+            <div class="p-8 bg-white pt-8">
+                <div class="text-center mb-8">
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Item</p>
+                    <h4 class="text-2xl font-black text-slate-900 leading-tight" id="receipt-item">...</h4>
+                </div>
+                <div class="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-5 text-center mb-8 cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all group"
+                    onclick="copyCode()">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mb-2 tracking-widest group-hover:text-blue-500"
+                        id="receipt-code-label">KODE VOUCHER</p>
+                    <p class="text-2xl font-mono font-black text-slate-900 tracking-wider break-all" id="receipt-code">
+                        ...</p>
+                    <p class="text-[10px] text-primary font-bold mt-2 flex justify-center items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">content_copy</span> Ketuk Salin
+                    </p>
+                </div>
+                <button onclick="window.location.reload()"
+                    class="w-full py-4 rounded-xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all">Selesai
+                    & Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="error-modal"
+        class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-8 text-center relative transform scale-95 opacity-0 transition-all"
+            id="error-content">
+            <div class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span class="material-symbols-outlined text-5xl text-red-500">sentiment_sad</span>
+            </div>
+            <h3 class="text-2xl font-black text-slate-900 mb-2">Saldo Tidak Cukup</h3>
+            <p class="text-slate-500 mb-8 leading-relaxed">Poin Anda saat ini belum mencukupi untuk menukar hadiah ini.
+                Yuk lapor sampah lagi!</p>
+            <button onclick="closeErrorModal()"
+                class="w-full py-3.5 rounded-xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-colors">Saya
+                Mengerti</button>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE ---
+        let currentUser = null;
+        let freshUser = null;
+        let selectedItem = null;
+        let selectedAvatar = "";
+
+        const AVATARS = [
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoro",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Naufal"
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Cek Login & Data
+            currentUser = requireLogin();
+            renderHeader('profile');
+            loadUIData();
+
+            // 2. Listeners Auto-Update
+            window.addEventListener('walletUpdated', loadUIData);
+            window.addEventListener('profileUpdated', loadUIData);
+        });
+
+        // --- CORE: LOAD DATA ---
+        function loadUIData() {
+            // Ambil saldo REAL dari utils (Database)
+            const balance = getCurrentBalance();
+
+            // Ambil data user REAL dari database
+            const users = getSharedUsers();
+            freshUser = users.find(u => u.id === currentUser.id) || currentUser;
+
+            // Render
+            document.getElementById('profile-name').innerText = freshUser.name;
+            document.getElementById('profile-email').innerText = freshUser.email;
+            document.getElementById('profile-phone').innerText = freshUser.phone || '-';
+            document.getElementById('profile-avatar').src = freshUser.avatar;
+            document.getElementById('wallet-balance').innerText = balance; // PASTI 150 jika baru reset
+
+            // Render History
+            const txs = getTransactionHistory();
+            renderHistory(txs);
+        }
+
+        function renderHistory(transactions) {
+            const tbody = document.getElementById('history-list');
+            const empty = document.getElementById('empty-history');
+            tbody.innerHTML = '';
+
+            if (transactions.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            transactions.forEach(tx => {
+                const isCredit = tx.type === 'CREDIT';
+                const color = isCredit ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50';
+                const sign = isCredit ? '+' : '-';
+
+                const row = `
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="px-8 py-5">
+                            <div class="text-sm font-bold text-slate-700 group-hover:text-primary transition-colors">${tx.date.split(',')[0]}</div>
+                            <div class="text-xs text-slate-400 font-mono mt-0.5">${tx.id}</div>
+                        </td>
+                        <td class="px-8 py-5 text-sm font-medium text-slate-600">${tx.description}</td>
+                        <td class="px-8 py-5 text-right">
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold ${color}">${sign} ${tx.amount}</span>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // --- EDIT PROFILE LOGIC (FIXED) ---
+        function openEditModal() {
+            document.getElementById('edit-name').value = freshUser.name;
+            document.getElementById('edit-email').value = freshUser.email;
+            document.getElementById('edit-phone').value = freshUser.phone;
+            selectedAvatar = freshUser.avatar || AVATARS[0];
+            renderAvatarList();
+
+            const modal = document.getElementById('edit-modal');
+            const content = document.getElementById('edit-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function renderAvatarList() {
+            const selector = document.getElementById('avatar-selector');
+            selector.innerHTML = '';
+            AVATARS.forEach(url => {
+                const isSelected = url === selectedAvatar;
+                const ringClass = isSelected ? 'ring-4 ring-primary ring-offset-2 opacity-100 scale-110 shadow-md' : 'opacity-60 hover:opacity-100 hover:scale-105 grayscale hover:grayscale-0';
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = `w-16 h-16 rounded-full bg-slate-100 cursor-pointer transition-all duration-300 flex-shrink-0 ${ringClass}`;
+                img.onclick = () => { selectedAvatar = url; renderAvatarList(); };
+                selector.appendChild(img);
+            });
+        }
+
+        function saveProfileData() {
+            const newName = document.getElementById('edit-name').value;
+            const newPhone = document.getElementById('edit-phone').value;
+            const newEmail = document.getElementById('edit-email').value;
+
+            if (!newName) return alert("Nama wajib diisi");
+
+            // Update Database
+            const users = getSharedUsers();
+            const idx = users.findIndex(u => u.id === currentUser.id);
+
+            if (idx !== -1) {
+                users[idx].name = newName;
+                users[idx].phone = newPhone;
+                users[idx].email = newEmail;
+                users[idx].avatar = selectedAvatar;
+                saveSharedUsers(users);
+
+                // Update Session
+                const session = getActiveSession();
+                session.name = newName;
+                session.avatar = selectedAvatar;
+                sessionStorage.setItem('active_session', JSON.stringify(session));
+
+                // Refresh All
+                loadUIData();
+                window.dispatchEvent(new Event('profileUpdated')); // Update Header
+                closeEditModal();
+                showProfileSuccessModal(); // NEW MODAL
+            }
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('edit-modal');
+            const content = document.getElementById('edit-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function showProfileSuccessModal() {
+            const modal = document.getElementById('profile-success-modal');
+            const content = document.getElementById('profile-success-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeProfileSuccessModal() {
+            const modal = document.getElementById('profile-success-modal');
+            const content = document.getElementById('profile-success-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+
+        // --- REDEEM LOGIC (SINKRONISASI) ---
+        function switchTab(tab) {
+            const store = document.getElementById('tab-content-store');
+            const history = document.getElementById('tab-content-history');
+            const btnStore = document.getElementById('tab-btn-store');
+            const btnHistory = document.getElementById('tab-btn-history');
+
+            if (tab === 'store') {
+                store.classList.remove('hidden');
+                history.classList.add('hidden');
+                btnStore.classList.add('text-primary', 'border-b-2', 'border-primary', 'bg-blue-50/30');
+                btnStore.classList.remove('text-slate-500');
+                btnHistory.classList.remove('text-primary', 'border-b-2', 'border-primary', 'bg-blue-50/30');
+                btnHistory.classList.add('text-slate-500');
+            } else {
+                store.classList.add('hidden');
+                history.classList.remove('hidden');
+                btnHistory.classList.add('text-primary', 'border-b-2', 'border-primary', 'bg-blue-50/30');
+                btnHistory.classList.remove('text-slate-500');
+                btnStore.classList.remove('text-primary', 'border-b-2', 'border-primary', 'bg-blue-50/30');
+                btnStore.classList.add('text-slate-500');
+            }
+        }
+
+        function scrollToRedeem() {
+            document.getElementById('redeem-section').scrollIntoView({ behavior: 'smooth' });
+            switchTab('store');
+        }
+
+        function initiateRedeem(cost, name, type) {
+            if (getCurrentBalance() < cost) {
+                openErrorModal();
+                return;
+            }
+            selectedItem = { cost, name, type };
+            document.getElementById('confirm-item-name').innerText = name;
+            document.getElementById('confirm-cost').innerText = cost;
+            document.getElementById('redeem-input').value = freshUser.phone || "";
+            document.getElementById('input-label').innerText = type === 'PLN' ? "ID Pelanggan" : "Nomor WhatsApp";
+            openConfirmModal();
+        }
+
+        function processRedeem() {
+            const target = document.getElementById('redeem-input').value;
+            if (!target) return alert("Isi nomor tujuan!");
+
+            const btn = document.getElementById('btn-process');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="material-symbols-outlined animate-spin">sync</span> Memproses...`;
+
+            setTimeout(() => {
+                // GUNAKAN FUNGSI UTILS (SENTRAL)
+                const success = updateUserPoints(currentUser.id, -selectedItem.cost, `Tukar: ${selectedItem.name}`);
+
+                if (success) {
+                    closeConfirmModal();
+                    // Generate Token 20 Digit jika PLN (dari user-utils.js)
+                    const code = generateRedeemCode(selectedItem.type);
+                    showSuccessModal(code, target);
+                } else {
+                    alert("Gagal transaksi.");
+                }
+                btn.disabled = false;
+                btn.innerHTML = `<span>Proses Transaksi</span><span class="material-symbols-outlined">arrow_forward</span>`;
+            }, 1500);
+        }
+
+        function showSuccessModal(code, target) {
+            const modal = document.getElementById('success-modal');
+            const content = document.getElementById('success-content');
+            document.getElementById('receipt-item').innerText = selectedItem.name;
+            document.getElementById('receipt-date').innerText = new Date().toLocaleString('id-ID');
+            document.getElementById('receipt-code').innerText = code;
+            document.getElementById('receipt-code-label').innerText = selectedItem.type === 'PLN' ? 'TOKEN LISTRIK (20 DIGIT)' : 'KODE VOUCHER';
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 100);
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(document.getElementById('receipt-code').innerText);
+            alert("Kode disalin!");
+        }
+
+        function openConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+        function closeConfirmModal() {
+            const modal = document.getElementById('confirm-modal');
+            const content = document.getElementById('confirm-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function openErrorModal() {
+            const modal = document.getElementById('error-modal');
+            const content = document.getElementById('error-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+        function closeErrorModal() {
+            const modal = document.getElementById('error-modal');
+            const content = document.getElementById('error-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+    </script>
+</body>
+
+</html>
