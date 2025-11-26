@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeafMart - Organic Vegetables</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS (Configured via CDN for this single file demo) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        beige: '#E8DCC4',
+                        'beige-dark': '#D6C6A5',
+                        olive: '#6B7A4F',
+                        'olive-dark': '#56623F',
+                        accent: '#FF8C42',
+                        dark: '#2C3E2E',
+                        offwhite: '#F9F7F4',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',
+                        'card': '0 4px 20px rgba(0,0,0,0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #E8DCC4;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #6B7A4F;
+            border-radius: 10px;
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Hide default number input arrows */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Card Hover Lift */
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-24">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12">
+
+            <!-- Card -->
+            <div class="group flex flex-col">
+                <div class="relative">
+                    <div class="aspect-square overflow-hidden rounded-2xl">
+                        <img src="../assets/img/pro/coffee-shop/img1.png" class="w-full h-full object-cover rounded-2xl"
+                            alt="Product Image">
+                    </div>
+
+                    <div class="pt-4">
+                        <h3 class="font-medium md:text-lg text-black dark:text-white">Beija Flor</h3>
+                        <p class="mt-2 font-semibold text-black dark:text-white">$5.50</p>
+                    </div>
+
+                    <a href="#" class="after:absolute after:inset-0 after:z-10"></a>
+                </div>
+
+                <div class="mt-4 mb-2 text-sm flex flex-col">
+                    <div class="py-3 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-2">
+                        <span class="font-medium text-black dark:text-white">Tasting Notes:</span>
+                        <span class="text-end text-black dark:text-white">Hazelnut, Grape, Milk Chocolate</span>
+                    </div>
+
+                    <div class="py-3 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-2">
+                        <span class="font-medium text-black dark:text-white">Origin:</span>
+                        <span class="text-end text-black dark:text-white">Brazil</span>
+                    </div>
+
+                    <div class="py-3 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-2">
+                        <span class="font-medium text-black dark:text-white">Region:</span>
+                        <span class="text-end text-black dark:text-white">San Paulo</span>
+                    </div>
+                </div>
+
+                <a href="#"
+                    class="mt-auto py-2 px-3 w-full inline-flex justify-center items-center text-sm font-medium rounded-xl bg-yellow-400 text-black hover:bg-yellow-500 transition">
+                    Buy now
+                </a>
+            </div>
+            <!-- End Card -->
+
+            <!-- Card -->
+            <div class="group flex flex-col">
+                <div class="relative">
+                    <div class="aspect-square overflow-hidden rounded-2xl">
+                        <img src="../assets/img/pro/coffee-shop/img2.png" class="w-full h-full object-cover rounded-2xl"
+                            alt="Product Image">
+                    </div>
+
+                    <div class="pt-4">
+                        <h3 class="font-medium md:text-lg text-black dark:text-white">El Mirador</h3>
+                        <p class="mt-2 font-semibold text-black dark:text-white">$7.50</p>
+                    </div>
+
+                    <a href="#" class="after:absolute after:inset-0 after:z-10"></a>
+                </div>
+
+                <div class="mt-4 mb-2 text-sm flex flex-col">
+                    <div class="py-3 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-2">
+                        <span class="font-medium">Tasting Notes:</span>
+                        <span class="text-end">Red Apple, Caramel, Almond</span>
+                    </div>
+
+                    <div class="py-3 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-2">
+                        <span class="font-medium">Origin:</span>
+                        <span class="text-end">Colombia</span>
+                    </div>
+
+                    <div class="py-3 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-2">
+                        <span class="font-medium">Region:</span>
+                        <span class="text-end">Manizales</span>
+                    </div>
+                </div>
+
+                <a href="#"
+                    class="mt-auto py-2 px-3 w-full inline-flex justify-center items-center text-sm font-medium rounded-xl bg-yellow-400 text-black hover:bg-yellow-500 transition">
+                    Buy now
+                </a>
+            </div>
+            <!-- End Card -->
+
+            <!-- Card -->
+            <div class="group flex flex-col">
+                <div class="relative">
+                    <div class="aspect-square overflow-hidden rounded-2xl">
+                        <img src="../assets/img/pro/coffee-shop/img5.png" class="w-full h-full object-cover rounded-2xl"
+                            alt="Product Image">
+                    </div>
+
+                    <div class="pt-4">
+                        <h3 class="font-medium md:text-lg">Pedra Branca</h3>
+                        <p class="mt-2 font-semibold">$2.10</p>
+                    </div>
+
+                    <a href="#" class="after:absolute after:inset-0 after:z-10"></a>
+                </div>
+
+                <div class="mt-4 mb-2 text-sm flex flex-col">
+                    <div class="py-3 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-2">
+                        <span class="font-medium">Tasting Notes:</span>
+                        <span class="text-end">Red Apple, Walnut, Milk Chocolate</span>
+                    </div>
+
+                    <div class="py-3 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-2">
+                        <span class="font-medium">Origin:</span>
+                        <span class="text-end">Brazil</span>
+                    </div>
+
+                    <div class="py-3 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-2">
+                        <span class="font-medium">Region:</span>
+                        <span class="text-end">San Paulo</span>
+                    </div>
+                </div>
+
+                <a href="#"
+                    class="mt-auto py-2 px-3 w-full inline-flex justify-center items-center text-sm font-medium rounded-xl bg-yellow-400 text-black hover:bg-yellow-500 transition">
+                    Buy now
+                </a>
+            </div>
+            <!-- End Card -->
+
+            <!-- (3 card lainnya tinggal mengikuti pola di atas, cukup copy-paste & ganti data) -->
+
+        </div>
+    </div>
+    <div class="p-6 bg-white rounded-xl shadow-sm w-full">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="text-gray-500 text-sm border-b">
+                    <th class="py-3 font-medium">Product Name</th>
+                    <th class="py-3 font-medium">Category</th>
+                    <th class="py-3 font-medium">Price</th>
+                    <th class="py-3 font-medium">Sold</th>
+                    <th class="py-3 font-medium">Profit</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody class="text-gray-700">
+
+                <!-- Row 1 -->
+                <tr class="border-b">
+                    <td class="py-4 flex items-center gap-3">
+                        <input type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                        <img src="https://i.imgur.com/0hQ7ZqJ.png" class="h-12 w-12 rounded object-cover" />
+                        Apple Watch Series 7
+                    </td>
+                    <td class="py-4">Electronics</td>
+                    <td class="py-4">$269</td>
+                    <td class="py-4">22</td>
+                    <td class="py-4">$45</td>
+                    <td class="py-4 text-xl cursor-pointer">⋯</td>
+                </tr>
+
+                <!-- Row 2 (Selected) -->
+                <tr class="border-b bg-blue-50">
+                    <td class="py-4 flex items-center gap-3">
+                        <input type="checkbox" checked
+                            class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                        <img src="https://i.imgur.com/xdJ1A1s.jpeg" class="h-12 w-12 rounded object-cover" />
+                        Macbook Pro M1
+                    </td>
+                    <td class="py-4">Electronics</td>
+                    <td class="py-4">$546</td>
+                    <td class="py-4">34</td>
+                    <td class="py-4">$125</td>
+                    <td class="py-4 text-xl cursor-pointer">⋯</td>
+                </tr>
+
+                <!-- Row 3 -->
+                <tr class="border-b">
+                    <td class="py-4 flex items-center gap-3">
+                        <input type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                        <img src="https://i.imgur.com/S1jJGbt.png" class="h-12 w-12 rounded object-cover" />
+                        Dell Inspiron 15
+                    </td>
+                    <td class="py-4">Electronics</td>
+                    <td class="py-4">$444</td>
+                    <td class="py-4">64</td>
+                    <td class="py-4">$247</td>
+                    <td class="py-4 text-xl cursor-pointer">⋯</td>
+                </tr>
+
+                <!-- Row 4 -->
+                <tr>
+                    <td class="py-4 flex items-center gap-3">
+                        <input type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                        <img src="https://i.imgur.com/k3WlZpH.jpeg" class="h-12 w-12 rounded object-cover" />
+                        HP Probook 450
+                    </td>
+                    <td class="py-4">Electronics</td>
+                    <td class="py-4">$499</td>
+                    <td class="py-4">72</td>
+                    <td class="py-4">$103</td>
+                    <td class="py-4 text-xl cursor-pointer">⋯</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+    <div class=" justify-center p-48">
+        <div class="p-6 bg-white rounded-xl shadow-sm w-full">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="text-gray-500 text-sm border-b">
+                        <th class="py-3 font-medium">Product Name</th>
+                        <th class="py-3 font-medium">Category</th>
+                        <th class="py-3 font-medium">Price</th>
+                        <th class="py-3 font-medium">Sold</th>
+                        <th class="py-3 font-medium">Profit</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody class="text-gray-700">
+
+                    <!-- Row 1 -->
+                    <tr class="border-b">
+                        <td class="py-4 flex items-center gap-3">
+                            <input type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                            <img src="https://i.imgur.com/0hQ7ZqJ.png" class="h-12 w-12 rounded object-cover" />
+                            Apple Watch Series 7
+                        </td>
+                        <td class="py-4">Electronics</td>
+                        <td class="py-4">$269</td>
+                        <td class="py-4">22</td>
+                        <td class="py-4">$45</td>
+                        <td class="py-4 text-xl cursor-pointer">⋯</td>
+                    </tr>
+
+                    <!-- Row 2 (Selected) -->
+                    <tr class="border-b bg-blue-50">
+                        <td class="py-4 flex items-center gap-3">
+                            <input type="checkbox" checked
+                                class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                            <img src="https://i.imgur.com/xdJ1A1s.jpeg" class="h-12 w-12 rounded object-cover" />
+                            Macbook Pro M1
+                        </td>
+                        <td class="py-4">Electronics</td>
+                        <td class="py-4">$546</td>
+                        <td class="py-4">34</td>
+                        <td class="py-4">$125</td>
+                        <td class="py-4 text-xl cursor-pointer">⋯</td>
+                    </tr>
+
+                    <!-- Row 3 -->
+                    <tr class="border-b">
+                        <td class="py-4 flex items-center gap-3">
+                            <input type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                            <img src="https://i.imgur.com/S1jJGbt.png" class="h-12 w-12 rounded object-cover" />
+                            Dell Inspiron 15
+                        </td>
+                        <td class="py-4">Electronics</td>
+                        <td class="py-4">$444</td>
+                        <td class="py-4">64</td>
+                        <td class="py-4">$247</td>
+                        <td class="py-4 text-xl cursor-pointer">⋯</td>
+                    </tr>
+
+                    <!-- Row 4 -->
+                    <tr>
+                        <td class="py-4 flex items-center gap-3">
+                            <input type="checkbox" class="h-4 w-4 rounded border-gray-300" />
+                            <img src="https://i.imgur.com/k3WlZpH.jpeg" class="h-12 w-12 rounded object-cover" />
+                            HP Probook 450
+                        </td>
+                        <td class="py-4">Electronics</td>
+                        <td class="py-4">$499</td>
+                        <td class="py-4">72</td>
+                        <td class="py-4">$103</td>
+                        <td class="py-4 text-xl cursor-pointer">⋯</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</body>
+
+</html>
