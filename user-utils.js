@@ -208,7 +208,7 @@ function loginUser(email, password) {
 
 function logoutUser() {
     sessionStorage.removeItem(KEYS.CURRENT_SESSION);
-    window.location.href = 'Login.html';
+    window.location.href = 'index.html';
 }
 
 function requireLogin() {
